@@ -31,6 +31,7 @@ func main() {
 
 	mux.HandleFunc("/api/v1/health", healthHandler)
 	mux.HandleFunc("POST /api/v1/pipeline-runs", pipelineHandler.Create)
+	mux.HandleFunc("GET /api/v1/pipeline-runs", pipelineHandler.List)
 	mux.HandleFunc("/", rootHandler)
 
 	log.Println("pipeline server running on port 8080")

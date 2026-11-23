@@ -74,3 +74,57 @@ func (r *PipelineRunRepository) Create(
 
 	return run, nil
 }
+
+func (r *PipelineRunRepository) List(ctx context.Context) ([]domain.PipelineRun, error) {
+	query := `
+		SELECT
+			id,
+			repository,
+			workflow_name,
+			branch,
+			commit_sha,
+			status,
+			conclusion,
+			started_at,
+			finished_at,
+			created_at
+		FROM pipeline_runs
+		ORDER BY created_at DESC;
+	`
+
+	runs := []domain.PipelineRun{}
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var run domain.PipelineRun
+
+		err := rows.Scan(
+			&run.ID,
+			&run.Repository,
+			&run.WorkflowName,
+			&run.Branch,
+			&run.CommitSHA,
+			&run.Status,
+			&run.Conclusion,
+			&run.StartedAt,
+			&run.FinishedAt,
+			&run.CreatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		runs = append(runs, run)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return runs, nil
+}
