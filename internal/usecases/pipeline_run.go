@@ -25,3 +25,7 @@ func (u *PipelineRunUsecase) CreatePipelineRun(
 ) (domain.PipelineRun, error) {
 	return u.PipelineRepo.Create(ctx, req)
 }
+
+func (u *PipelineRunUsecase) ListPipelineRuns(ctx context.Context) ([]domain.PipelineRun, error) {
+	return u.PipelineRepo.List(ctx)
+}
