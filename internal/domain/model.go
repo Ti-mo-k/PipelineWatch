@@ -23,3 +23,10 @@ type PipelineRun struct {
 	FinishedAt   *time.Time `json:"finished_at"`
 	CreatedAt    time.Time  `json:"created_at"`
 }
+
+type ListPipelineRunsFilter struct {
+	Status     string
+	Repository string
+	Limit      int
+	Offset     int
+}
