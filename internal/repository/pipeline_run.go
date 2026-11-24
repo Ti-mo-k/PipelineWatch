@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/Ti-mo-k/PipelineWatch/internal/domain"
 )
@@ -75,7 +76,11 @@ func (r *PipelineRunRepository) Create(
 	return run, nil
 }
 
-func (r *PipelineRunRepository) List(ctx context.Context) ([]domain.PipelineRun, error) {
+func (r *PipelineRunRepository) List(
+	ctx context.Context,
+	filter domain.ListPipelineRunsFilter,
+) ([]domain.PipelineRun, error) {
+
 	query := `
 		SELECT
 			id,
@@ -89,12 +94,35 @@ func (r *PipelineRunRepository) List(ctx context.Context) ([]domain.PipelineRun,
 			finished_at,
 			created_at
 		FROM pipeline_runs
-		ORDER BY created_at DESC;
+		WHERE 1=1
 	`
+
+	args := []any{}
+
+	// Status filter
+	if filter.Status != "" {
+		args = append(args, filter.Status)
+		query += fmt.Sprintf(" AND status = $%d", len(args))
+	}
+
+	// Repository filter
+	if filter.Repository != "" {
+		args = append(args, filter.Repository)
+		query += fmt.Sprintf(" AND repository = $%d", len(args))
+	}
+
+	// Pagination
+	query += " ORDER BY created_at DESC, id DESC"
+
+	args = append(args, filter.Limit)
+	query += fmt.Sprintf(" LIMIT $%d", len(args))
+
+	args = append(args, filter.Offset)
+	query += fmt.Sprintf(" OFFSET $%d", len(args))
 
 	runs := []domain.PipelineRun{}
 
-	rows, err := r.db.QueryContext(ctx, query)
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
